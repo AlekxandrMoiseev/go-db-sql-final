@@ -86,7 +86,7 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 }
 
 func (s ParcelStore) Delete(number int) error {
-	// удаление строки из таблицы parcel, удалять строку можно только если значение статуса registered ...
+	// удаление строки из таблицы parcel, удалять строку можно только если значение статуса registered
 	parcel, err := s.Get(number)
 	if err != nil {
 		return err
