@@ -146,7 +146,7 @@ func TestGetByClient(t *testing.T) {
 		parcelMap[id] = parcels[i]
 	}
 
-	// get by client
+	// get by client .
 	storedParcels, err := store.GetByClient(client)
 	require.NoError(t, err)
 	require.Len(t, storedParcels, len(parcels))
