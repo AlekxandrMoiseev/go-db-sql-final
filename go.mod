@@ -1,8 +1,9 @@
-module github.com/Yandex-Practicum/go-db-sql-final
+module go-db-sql-final
 
-go 1.21
+go 1.18
 
 require (
+	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/stretchr/testify v1.9.0
 	modernc.org/sqlite v1.30.2
 )

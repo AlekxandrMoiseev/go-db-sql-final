@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3" // Импортируйте SQLite драйвер
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,7 +32,7 @@ func getTestParcel() Parcel {
 // TestAddGetDelete проверяет добавление, получение и удаление посылки
 func TestAddGetDelete(t *testing.T) {
 	// prepare
-	db, err := sql.Open("sqlite", "tracker.db")
+	db, err := sql.Open("sqlite3", "tracker.db")
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -46,10 +47,7 @@ func TestAddGetDelete(t *testing.T) {
 	// get
 	addedParcel, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, parcel.Client, addedParcel.Client)
-	require.Equal(t, parcel.Status, addedParcel.Status)
-	require.Equal(t, parcel.Address, addedParcel.Address)
-	require.Equal(t, parcel.CreatedAt, addedParcel.CreatedAt)
+	require.Equal(t, parcel, addedParcel)
 
 	// delete
 	err = store.Delete(id)
@@ -63,7 +61,7 @@ func TestAddGetDelete(t *testing.T) {
 // TestSetAddress проверяет обновление адреса
 func TestSetAddress(t *testing.T) {
 	// prepare
-	db, err := sql.Open("sqlite", "tracker.db")
+	db, err := sql.Open("sqlite3", "tracker.db")
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -89,7 +87,7 @@ func TestSetAddress(t *testing.T) {
 // TestSetStatus проверяет обновление статуса
 func TestSetStatus(t *testing.T) {
 	// prepare
-	db, err := sql.Open("sqlite", "tracker.db")
+	db, err := sql.Open("sqlite3", "tracker.db")
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -102,7 +100,7 @@ func TestSetStatus(t *testing.T) {
 	require.NotZero(t, id)
 
 	// set status
-	newStatus := ParcelStatusSent
+	newStatus := "sent"
 	err = store.SetStatus(id, newStatus)
 	require.NoError(t, err)
 
@@ -115,7 +113,7 @@ func TestSetStatus(t *testing.T) {
 // TestGetByClient проверяет получение посылок по идентификатору клиента
 func TestGetByClient(t *testing.T) {
 	// prepare
-	db, err := sql.Open("sqlite", "tracker.db")
+	db, err := sql.Open("sqlite3", "tracker.db")
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -126,39 +124,29 @@ func TestGetByClient(t *testing.T) {
 		getTestParcel(),
 	}
 	parcelMap := map[int]Parcel{}
-
-	// задаём всем посылкам один и тот же идентификатор клиента
 	client := randRange.Intn(10_000_000)
-	parcels[0].Client = client
-	parcels[1].Client = client
-	parcels[2].Client = client
-
-	// add
-	for i := 0; i < len(parcels); i++ {
-		id, err := store.Add(parcels[i])
-		require.NoError(t, err)
-		require.NotZero(t, id)
-
-		// обновляем идентификатор добавленной у посылки
-		parcels[i].Number = id
-
-		// сохраняем добавленную посылку в структуру map, чтобы её можно было легко достать по идентификатору посылки
-		parcelMap[id] = parcels[i]
+	for i := range parcels {
+		parcels[i].Client = client
 	}
 
-	// get by client .
+	// add
+	for _, parcel := range parcels {
+		id, err := store.Add(parcel)
+		require.NoError(t, err)
+		require.NotZero(t, id)
+		parcel.Number = id
+		parcelMap[id] = parcel
+	}
+
+	// get by client
 	storedParcels, err := store.GetByClient(client)
 	require.NoError(t, err)
 	require.Len(t, storedParcels, len(parcels))
 
 	// check
 	for _, parcel := range storedParcels {
-		// в parcelMap лежат добавленные посылки, ключ - идентификатор посылки, значение - сама посылка
 		expectedParcel, exists := parcelMap[parcel.Number]
 		require.True(t, exists)
-		require.Equal(t, expectedParcel.Client, parcel.Client)
-		require.Equal(t, expectedParcel.Status, parcel.Status)
-		require.Equal(t, expectedParcel.Address, parcel.Address)
-		require.Equal(t, expectedParcel.CreatedAt, parcel.CreatedAt)
+		require.Equal(t, expectedParcel, parcel)
 	}
 }
