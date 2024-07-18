@@ -104,7 +104,7 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 	return nil
 }
 
-// Delete удаляет посылку по заданному номеру, только если она имеет статус "зарегистрирована"
+// Delete удаляет посылку по заданному номеру, только если она имеет статус "зарегистрирована" .
 func (s ParcelStore) Delete(number int) error {
 	query := `DELETE FROM parcel WHERE number = ? AND status = ?`
 	result, err := s.db.Exec(query, number, ParcelStatusRegistered)

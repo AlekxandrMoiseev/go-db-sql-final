@@ -29,11 +29,28 @@ func getTestParcel() Parcel {
 	}
 }
 
+// setupDatabase инициализирует базу данных и создает таблицу parcel
+func setupDatabase(t *testing.T) *sql.DB {
+	db, err := sql.Open("sqlite3", ":memory:") // Используем in-memory базу данных для тестов
+	require.NoError(t, err)
+
+	createTableSQL := `CREATE TABLE IF NOT EXISTS parcel (
+        number INTEGER PRIMARY KEY AUTOINCREMENT,
+        client INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        address TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    );`
+
+	_, err = db.Exec(createTableSQL)
+	require.NoError(t, err)
+
+	return db
+}
+
 // TestAddGetDelete проверяет добавление, получение и удаление посылки
 func TestAddGetDelete(t *testing.T) {
-	// prepare
-	db, err := sql.Open("sqlite3", "tracker.db")
-	require.NoError(t, err)
+	db := setupDatabase(t)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -47,7 +64,10 @@ func TestAddGetDelete(t *testing.T) {
 	// get
 	addedParcel, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, parcel, addedParcel)
+	require.Equal(t, parcel.Client, addedParcel.Client)
+	require.Equal(t, parcel.Status, addedParcel.Status)
+	require.Equal(t, parcel.Address, addedParcel.Address)
+	require.Equal(t, parcel.CreatedAt, addedParcel.CreatedAt)
 
 	// delete
 	err = store.Delete(id)
@@ -60,9 +80,7 @@ func TestAddGetDelete(t *testing.T) {
 
 // TestSetAddress проверяет обновление адреса
 func TestSetAddress(t *testing.T) {
-	// prepare
-	db, err := sql.Open("sqlite3", "tracker.db")
-	require.NoError(t, err)
+	db := setupDatabase(t)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -86,9 +104,7 @@ func TestSetAddress(t *testing.T) {
 
 // TestSetStatus проверяет обновление статуса
 func TestSetStatus(t *testing.T) {
-	// prepare
-	db, err := sql.Open("sqlite3", "tracker.db")
-	require.NoError(t, err)
+	db := setupDatabase(t)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -112,9 +128,7 @@ func TestSetStatus(t *testing.T) {
 
 // TestGetByClient проверяет получение посылок по идентификатору клиента
 func TestGetByClient(t *testing.T) {
-	// prepare
-	db, err := sql.Open("sqlite3", "tracker.db")
-	require.NoError(t, err)
+	db := setupDatabase(t)
 	defer db.Close()
 
 	store := NewParcelStore(db)

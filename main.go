@@ -13,14 +13,17 @@ const (
 	ParcelStatusDelivered = "delivered"
 )
 
+// ParcelService предоставляет методы для работы с посылками
 type ParcelService struct {
 	store ParcelStore
 }
 
+// NewParcelService создает новый экземпляр ParcelService с переданным хранилищем посылок
 func NewParcelService(store ParcelStore) ParcelService {
 	return ParcelService{store: store}
 }
 
+// Register регистрирует новую посылку и возвращает её
 func (s ParcelService) Register(client int, address string) (Parcel, error) {
 	parcel := Parcel{
 		Client:    client,
@@ -42,6 +45,7 @@ func (s ParcelService) Register(client int, address string) (Parcel, error) {
 	return parcel, nil
 }
 
+// PrintClientParcels выводит все посылки клиента на экран
 func (s ParcelService) PrintClientParcels(client int) error {
 	parcels, err := s.store.GetByClient(client)
 	if err != nil {
@@ -58,6 +62,7 @@ func (s ParcelService) PrintClientParcels(client int) error {
 	return nil
 }
 
+// NextStatus переводит посылку на следующий статус
 func (s ParcelService) NextStatus(number int) error {
 	parcel, err := s.store.Get(number)
 	if err != nil {
@@ -79,12 +84,28 @@ func (s ParcelService) NextStatus(number int) error {
 	return s.store.SetStatus(number, nextStatus)
 }
 
+// ChangeAddress изменяет адрес посылки
 func (s ParcelService) ChangeAddress(number int, address string) error {
 	return s.store.SetAddress(number, address)
 }
 
+// Delete удаляет посылку
 func (s ParcelService) Delete(number int) error {
 	return s.store.Delete(number)
+}
+
+// createTableIfNotExists создает таблицу parcel, если она не существует
+func createTableIfNotExists(db *sql.DB) error {
+	createTableSQL := `CREATE TABLE IF NOT EXISTS parcel (
+        number INTEGER PRIMARY KEY AUTOINCREMENT,
+        client INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        address TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    );`
+
+	_, err := db.Exec(createTableSQL)
+	return err
 }
 
 func main() {
@@ -95,6 +116,13 @@ func main() {
 		return
 	}
 	defer db.Close()
+
+	// Создание таблицы, если она не существует
+	err = createTableIfNotExists(db)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	// Создание объекта ParcelStore
 	store := NewParcelStore(db)
