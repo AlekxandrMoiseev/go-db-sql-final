@@ -155,7 +155,7 @@ func TestGetByClient(t *testing.T) {
 		parcels[i].Client = client
 	}
 
-	// add
+	// add .
 	for _, parcel := range parcels {
 		id, err := store.Add(parcel)
 		require.NoError(t, err)
