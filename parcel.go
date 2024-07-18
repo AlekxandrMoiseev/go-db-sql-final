@@ -48,7 +48,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 	var p Parcel
 	err := row.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return p, errors.New("parcel not found")
 		}
 		return p, err

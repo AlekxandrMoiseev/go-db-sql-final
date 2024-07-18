@@ -61,13 +61,13 @@ func TestAddGetDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, id)
 
+	// Установите поле Number для сравнения
+	parcel.Number = id
+
 	// get
 	addedParcel, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, parcel.Client, addedParcel.Client)
-	require.Equal(t, parcel.Status, addedParcel.Status)
-	require.Equal(t, parcel.Address, addedParcel.Address)
-	require.Equal(t, parcel.CreatedAt, addedParcel.CreatedAt)
+	require.Equal(t, parcel, addedParcel)
 
 	// delete
 	err = store.Delete(id)
@@ -91,15 +91,21 @@ func TestSetAddress(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, id)
 
+	// Установите поле Number для сравнения
+	parcel.Number = id
+
 	// set address
 	newAddress := "new test address"
 	err = store.SetAddress(id, newAddress)
 	require.NoError(t, err)
 
+	// Обновите поле Address для сравнения
+	parcel.Address = newAddress
+
 	// check
 	updatedParcel, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, newAddress, updatedParcel.Address)
+	require.Equal(t, parcel, updatedParcel)
 }
 
 // TestSetStatus проверяет обновление статуса
@@ -115,15 +121,21 @@ func TestSetStatus(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, id)
 
+	// Установите поле Number для сравнения
+	parcel.Number = id
+
 	// set status
 	newStatus := "sent"
 	err = store.SetStatus(id, newStatus)
 	require.NoError(t, err)
 
+	// Обновите поле Status для сравнения
+	parcel.Status = newStatus
+
 	// check
 	updatedParcel, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, newStatus, updatedParcel.Status)
+	require.Equal(t, parcel, updatedParcel)
 }
 
 // TestGetByClient проверяет получение посылок по идентификатору клиента
